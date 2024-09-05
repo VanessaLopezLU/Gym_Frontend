@@ -8,6 +8,7 @@ import Maquina from './components/Maquina.vue';
 
 
 
+
 // Definir las rutas de la aplicación
 const routes = [
     {
@@ -15,6 +16,7 @@ const routes = [
       name: 'IniciarSesion',
       component: IniciarSesion
     },
+   
     {
       path: '/registrarse',
       name: 'Registrarse',

@@ -8,7 +8,7 @@
                 <h1 class="text-center mb-4">Crear Tipo de Máquina</h1>
               </v-card-title>
               <v-card-text>
-                <form >
+                <form ref="formTipo" >
                   <v-text-field 
                     v-model="tipo.nombre" 
                     label="Nombre del Tipo de Máquina" 
@@ -20,20 +20,12 @@
                     class="text-black">
                   </v-text-field>
   
-                  <v-textarea 
-                    v-model="tipo.descripcion" 
-                    label="Descripción del Tipo de Máquina" 
-                    outlined 
-                    dense 
-                    clearable
-                    prepend-inner-icon="mdi-text"
-                    color="black"
-                    class="text-black">
-                  </v-textarea>
-  
-                  <v-btn class="mt-6" type="submit" color="primary" block>
-                    Crear Tipo de Máquina
-                  </v-btn>
+          
+                  <v-card-actions class="justify-center btn"  color="primary">
+                  <v-btn @click="guardarTipo()" class="btn-tabla">
+                  {{ editing ? "Modificar" : "Registrar Tipo de Maquina" }}
+                </v-btn>
+              </v-card-actions>
                 </form>
               </v-card-text>
             </v-card>
@@ -44,16 +36,62 @@
   </template>
   
   <script>
+  import axios from "axios";
+  import Swal from "sweetalert2";
   export default {
     data() {
       return {
        tipo:{
         nombre:null,
-        descripcion:null
+      
        }
       };
     },
     methods: {
+      async guardarTipo() {
+      try {
+        if (this.editing) {
+          await axios.put(
+            `${import.meta.env.VITE_APP_API}/tipo-maquina/${this.currentId}`,
+            this.tipo
+          );
+       
+          Swal.fire({
+            title: "Éxito!",
+            text: "Tipo de Maquina actualizada con éxito",
+            icon: "success",
+            confirmButtonText: "Aceptar",
+          });
+          this.editing = false;
+        } else {
+          console.log(this.maquina);
+
+          await axios.post(
+            `${import.meta.env.VITE_APP_API}/tipo-maquina/crear`,
+            this.tipo,
+          );
+         
+          Swal.fire({
+            title: "Éxito!",
+            text: "Tipo de Maquina guardada con éxito",
+            icon: "success",
+            confirmButtonText: "Aceptar",
+          });
+        }
+        this.$refs.formTipo.reset();
+      } catch (error) {
+        Swal.fire({
+          title: "Error!",
+          text: "Error al guardar el tipo de Maquina",
+          icon: "error",
+          confirmButtonText: "Aceptar",
+        });
+        console.error(
+          "Error al guardar el tipo de Maquina:",
+          error.response ? error.response.data : error.message
+        );
+      }
+    },
     
     }
   };
@@ -71,6 +109,9 @@
   h1 {
     font-family: 'Cambria', serif;
     color: black;
+  }
+  .btn{
+    background-color: #5a9bb9;
   }
   
   .v-card {
