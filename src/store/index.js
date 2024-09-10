@@ -47,7 +47,7 @@ const store = createStore({
       return state.usuario;
     },
     getRole(state) {
-      return state.usuario?.role || null;
+        return state.user ? state.user.usuario.role : null; 
     },
   },
   plugins: [createPersistedState()],

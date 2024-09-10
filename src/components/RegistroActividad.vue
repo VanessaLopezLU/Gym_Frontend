@@ -32,8 +32,7 @@
                   type="number"
                   color="black"
                   class="text-black"
-                >
-                </v-text-field>
+                ></v-text-field>
 
                 <v-text-field
                   v-model="actividad.peso"
@@ -45,8 +44,7 @@
                   type="number"
                   color="black"
                   class="text-black"
-                >
-                </v-text-field>
+                ></v-text-field>
 
                 <v-text-field
                   v-model="actividad.fechaInicio"
@@ -58,8 +56,7 @@
                   type="datetime-local"
                   color="black"
                   class="text-black"
-                >
-                </v-text-field>
+                ></v-text-field>
 
                 <v-text-field
                   v-model="actividad.fechaFin"
@@ -71,8 +68,7 @@
                   type="datetime-local"
                   color="black"
                   class="text-black"
-                >
-                </v-text-field>
+                ></v-text-field>
 
                 <v-card-actions class="justify-center btn" color="primary">
                   <v-btn @click="guardarActividad()" class="btn-tabla">
@@ -84,34 +80,40 @@
           </v-card>
         </v-col>
 
-        <!-- Section for Chart Report -->
+        <!-- Bar Chart Section -->
         <v-col cols="12" md="5">
           <v-card class="pa-6" elevation="10">
             <v-card-title class="justify-center">
-              <h1 class="text-center mb-4">Reporte de Avance</h1>
+              <h1 class="text-center mb-4">Reporte de Avances</h1>
             </v-card-title>
             <v-card-text>
-              <!-- Doughnut Chart component -->
-              <doughnut-chart :chart-data="chartData" :chart-options="chartOptions"></doughnut-chart>
+              <bar-chart :chart-data="chartData" />
             </v-card-text>
+            <v-card-actions class="justify-center">
+                  <v-btn @click="rankingUsuarios" class="mt-6 btn" type="submit" block>
+                    RANKING
+                  </v-btn>
+                </v-card-actions>
           </v-card>
         </v-col>
+        
       </v-row>
+      
     </v-responsive>
+    
   </v-container>
 </template>
 
 <script>
-import { Doughnut } from 'vue-chartjs/legacy';
-import { Chart as ChartJS, Title, Tooltip, Legend, ArcElement } from 'chart.js';
+import { Chart as ChartJS, Title, Tooltip, Legend, BarElement, CategoryScale, LinearScale,BarController } from 'chart.js';
 import axios from "axios";
 import Swal from "sweetalert2";
+import { BarChart } from 'vue-chart-3';
 
-ChartJS.register(Title, Tooltip, Legend, ArcElement);
+ChartJS.register(Title, Tooltip, Legend, BarElement, CategoryScale, LinearScale,BarController);
+
 export default {
-  components: {
-    DoughnutChart: Doughnut
-  },
+  components: { BarChart },
   data() {
     return {
       actividad: {
@@ -129,113 +131,116 @@ export default {
       maquina: [],
       usuario: [],
       actividades: [],
-      chartData: null,
-      chartOptions: {
-        responsive: true,
-        maintainAspectRatio: false,
-        plugins: {
-          legend: {
-            position: 'top',
-          },
-          title: {
-            display: true,
-            text: 'Progreso de Actividades'
-          }
-        }
-      },
-     
+      chartData: [],
     };
   },
   methods: {
+    async rankingUsuarios() {
+      
+        this.$router.push('/ranking');
+    
+    },
     async guardarActividad() {
       try {
+        const usuario = this.$store.getters.getUser;
+        if (usuario && usuario.id) {
+          this.actividad.usuario = usuario.id;
+        }
+
         if (this.editing) {
-          await axios.put(
-            `${import.meta.env.VITE_APP_API}/actividades/${this.currentId}`,
-            this.actividad
-          );
-          this.ObtenerActividad();
-          Swal.fire({
-            title: "Éxito!",
-            text: "Actividad  actualizada con éxito",
-            icon: "success",
-            confirmButtonText: "Aceptar",
-          });
+          await axios.put(`${import.meta.env.VITE_APP_API}/actividades/${this.currentId}`, this.actividad);
+          Swal.fire({ title: "Éxito!", text: "Actividad actualizada con éxito", icon: "success", confirmButtonText: "Aceptar" });
           this.editing = false;
         } else {
-          console.log(this.actividad);
-          const usuario = this.$store.getters.getUser;
-
-          if (usuario && usuario.id) {
-            this.actividad.usuario = usuario.id;
-            await axios.post(
-              `${import.meta.env.VITE_APP_API}/actividades/crear`,
-              this.actividad
-            );
-          }
-
-          this.ObtenerActividad();
-          Swal.fire({
-            title: "Éxito!",
-            text: "Actividad guardada con éxito",
-            icon: "success",
-            confirmButtonText: "Aceptar",
-          });
+          await axios.post(`${import.meta.env.VITE_APP_API}/actividades/crear`, this.actividad);
+          Swal.fire({ title: "Éxito!", text: "Actividad guardada con éxito", icon: "success", confirmButtonText: "Aceptar" });
         }
+
+        this.ObtenerActividad();
         this.$refs.formActividad.reset();
       } catch (error) {
-        Swal.fire({
-          title: "Error!",
-          text: "Error al guardar la actividad",
-          icon: "error",
-          confirmButtonText: "Aceptar",
-        });
-        console.error(
-          "Error al guardar la actividad:",
-          error.response ? error.response.data : error.message
-        );
+        Swal.fire({ title: "Error!", text: "Error al guardar la actividad", icon: "error", confirmButtonText: "Aceptar" });
+        console.error("Error al guardar la actividad:", error.response ? error.response.data : error.message);
       }
     },
+
     async ObtenerActividad() {
-      try {
-        const response = await axios.get(`${import.meta.env.VITE_APP_API}/actividades/obtenerTodos`);
-        this.actividades = response.data;
-        this.generateChartData();
-      } catch (error) {
-        console.error("Error al obtener las actividades:", error);
+    try {
+      const user = this.$store.getters.getUser;
+      console.log("Usuario obtenido de Vuex:", user);
+      if (!user || !user.id) {
+        console.warn("No se pudo obtener el ID del usuario.");
+        return;
       }
-    },
+      const id = user.id;
+      console.log("ID del usuario:", id);
+      const response = await axios.get(`${import.meta.env.VITE_APP_API}/actividades/usuario/${id}`);
+      console.log("Datos de actividades obtenidos:", response.data);
+      this.actividades = response.data;
+
+      if (this.actividades.length > 0) {
+        this.generarGrafica();
+      } else {
+        console.warn("No hay actividades para mostrar en la gráfica");
+      }
+    } catch (error) {
+      console.error("Error al obtener las actividades:", error);
+    }
+  },
+
     async ObtenerMaquina() {
       try {
-        const response = await axios.get(
-          `${import.meta.env.VITE_APP_API}/maquinas/obtenerTodos`
-        );
+        const response = await axios.get(`${import.meta.env.VITE_APP_API}/maquinas/obtenerTodos`);
         this.maquinas = response.data;
       } catch (error) {
-        console.error(
-          "Error al obtener la maquina:",
-          error.response ? error.response.data : error.message
-        );
+        console.error("Error al obtener la maquina:", error.response ? error.response.data : error.message);
       }
     },
-    generateChartData() {
-      // Crear los datos para la gráfica de anillo
-      const labels = this.actividades.map(actividad => `Actividad ${actividad.id}`);
-      const data = this.actividades.map(actividad => actividad.repeticiones);
 
-      this.chartData = {
-        labels: labels,
-        datasets: [
-          {
-            label: 'Repeticiones',
-            backgroundColor: ['#FF6384', '#36A2EB', '#FFCE56', '#4BC0C0', '#9966FF'],
-            data: data,
-          }
-        ]
-      };
+    generarGrafica() {
+    if (!this.actividades || this.actividades.length === 0) {
+      console.warn("No hay actividades para generar la gráfica");
+      return;
     }
- 
+    
+    const datosPorMaquina = this.actividades.reduce((acumulador, actividad) => {
+      const maquinaNombre = actividad.maquina.nombre; 
+      if (!acumulador[maquinaNombre]) {
+        acumulador[maquinaNombre] = { repeticiones: 0, peso: 0 };
+      }
+      acumulador[maquinaNombre].repeticiones += actividad.repeticiones; 
+      acumulador[maquinaNombre].peso += actividad.peso; 
+      return acumulador;
+    }, {});
+
+
+    const labels = Object.keys(datosPorMaquina); 
+    const repeticionesData = Object.values(datosPorMaquina).map((dato) => dato.repeticiones); 
+    const pesoData = Object.values(datosPorMaquina).map((dato) => dato.peso);
+
+    // Configuración del gráfico de barras
+    this.chartData = {
+      labels: labels,
+      datasets: [
+        {
+          label: 'Repeticiones por Máquina',
+          backgroundColor: '#36A2EB',
+          borderColor: '#36A2EB',
+          borderWidth: 1,
+          data: repeticionesData,
+        },
+        {
+          label: 'Peso Levantado por Máquina (kg)',
+          backgroundColor: '#FF6384',
+          borderColor: '#FF6384',
+          borderWidth: 1,
+          data: pesoData,
+        }
+      ]
+    };
   },
+  },
+
   created() {
     this.ObtenerActividad();
     this.ObtenerMaquina();
@@ -256,6 +261,7 @@ h1 {
   font-family: "Cambria", serif;
   color: black;
 }
+
 .btn {
   background-color: #5a9bb9;
 }
@@ -280,7 +286,7 @@ h1 {
 }
 
 .chart-container {
-  height: 400px; /* Adjust as needed */
+  height: 400px; 
   display: flex;
   align-items: center;
   justify-content: center;

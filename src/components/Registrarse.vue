@@ -100,7 +100,7 @@ export default {
     async ObtenerRol() {
       try {
         const response = await axios.get(
-          `${import.meta.env.VITE_APP_API}/roles/obtener`
+          `${import.meta.env.VITE_APP_API}/roles/obtenerTodos`
         );
         this.roles = response.data;
         console.log(this.roles);

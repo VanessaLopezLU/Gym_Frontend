@@ -4,6 +4,7 @@ import IniciarSesion from './components/IniciarSesion.vue';
 import RegistroActividad from './components/RegistroActividad.vue';
 import TipoMaquina from './components/TipoMaquina.vue';
 import Maquina from './components/Maquina.vue';
+import Ranking from './components/Ranking.vue';
 
 
 
@@ -22,10 +23,16 @@ const routes = [
       name: 'Registrarse',
       component: Registrarse
     },
+    
     {
         path: '/actividad',
         name: 'RegistroActividad',
         component: RegistroActividad ,
+      },
+      {
+        path: '/ranking',
+        name: 'Ranking',
+        component: Ranking ,
       },
       {
         path: '/tipo-maquina',

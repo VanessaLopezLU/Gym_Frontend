@@ -44,7 +44,7 @@
                 <td class="data">{{ item.nombre }}</td>
                 <td class="data">{{ item.estado }}</td>
                 <td class="data">
-                  {{ item.tipoMaquina.nombre}}
+                  {{ item.tipoMaquina.nombre }}
                 </td>
                 <td class="data acciones">
                   <v-btn small @click="editMaquina(item)" class="mx-2">
@@ -169,7 +169,7 @@ export default {
           icon: "success",
           confirmButtonText: "Aceptar",
         });
-        this.obtenerAutores();
+       
       } catch (error) {
         Swal.fire({
           title: "Error!",
